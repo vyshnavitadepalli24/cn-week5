@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <string.h>
+
+void calculateCRC(char data[], char poly[], char remainder[])
+{
+    char temp[200];
+    int dataLen = strlen(data);
+    int polyLen = strlen(poly);
+    int i, j;
+
+    strcpy(temp, data);
+
+    for (i = 0; i <= dataLen - polyLen; i++)
+    {
+        if (temp[i] == '1')
+        {
+            for (j = 0; j < polyLen; j++)
+            {
+                temp[i + j] = (temp[i + j] == poly[j]) ? '0' : '1';
+            }
+        }
+    }
+
+    /* Copy exactly polyLen-1 remainder bits */
+    for (i = 0; i < polyLen - 1; i++)
+    {
+        remainder[i] = temp[dataLen - polyLen + 1 + i];
+    }
+
+    remainder[polyLen - 1] = '\0';
+}
+
+int main()
+{
+    int choice, errorChoice;
+    char data[100];
+    char poly[30];
+    char modifiedData[200];
+    char checksum[30];
+    char codeword[200];
+    char remainder[30];
+
+    /* Input: 1 100100 1 */
+    scanf("%d %s %d", &choice, data, &errorChoice);
+
+    printf("1. CRC-12 2. CRC-16 3. CRC-CCITT");
+
+    if (choice == 1)
+    {
+        strcpy(poly, "1100000001111");
+    }
+    else if (choice == 2)
+    {
+        strcpy(poly, "11000000000000101");
+    }
+    else if (choice == 3)
+    {
+        strcpy(poly, "1000100000100001");
+    }
+    else
+    {
+        printf("Invalid Choice");
+        return 0;
+    }
+
+    printf(" Generating Polynomial: %s", poly);
+
+    /* Append zeros */
+    strcpy(modifiedData, data);
+
+    for (int i = 0; i < strlen(poly) - 1; i++)
+        strcat(modifiedData, "0");
+
+    printf(" Modified Data: %s", modifiedData);
+
+    /* Find CRC checksum */
+    calculateCRC(modifiedData, poly, checksum);
+
+    printf(" Checksum: %s\n", checksum);
+
+    /* Create final codeword */
+    strcpy(codeword, data);
+    strcat(codeword, checksum);
+
+    printf("Final Codeword: %s", codeword);
+
+    /* Error detection */
+    printf(" Test error detection? 0 = Yes 1 = No Choice: No Error Detected." );
+
+    if (errorChoice == 0)
+    {
+        calculateCRC(codeword, poly, remainder);
+
+        int error = 0;
+
+        for (int i = 0; i < strlen(remainder); i++)
+        {
+            if (remainder[i] == '1')
+            {
+                error = 1;
+                break;
+            }
+        }
+
+        if (error == 0)
+            printf("Choice: No Error Detected.");
+        else
+            printf("Choice: Error Detected.");
+    }
+
+    return 0;
+}
